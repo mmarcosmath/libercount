@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:super_qr_reader/super_qr_reader.dart';
 
 class TelaInicial extends StatefulWidget {
@@ -7,6 +10,27 @@ class TelaInicial extends StatefulWidget {
 }
 
 class _TelaInicialState extends State<TelaInicial> {
+  String url = "http://192.168.0.105:3000/livros";
+
+  Future<bool> check(String code) async {
+    http.Response res;
+    try {
+      res = await http.get(url + '/codigo/' + code);
+      if (res.statusCode == 200) {
+        var data = jsonDecode(res.body);
+        await http.put(url + '/codigo/' + data['_id']);
+        print(url + '/codigo/' + data['_id']);
+      }
+    } catch (e) {
+      print(e);
+      return false;
+    }
+    // var data = jsonDecode(res.body);
+    print(res.body);
+    // print(data);
+    return true;
+  }
+
   Future<void> scanner() async {
     String results = await Navigator.push(
       // waiting for the scan results
@@ -16,6 +40,7 @@ class _TelaInicialState extends State<TelaInicial> {
       ),
     );
     if (results != null) {
+      await check(results);
       scanner();
     }
   }
@@ -68,6 +93,13 @@ class _TelaInicialState extends State<TelaInicial> {
                   child: GestureDetector(
                     onTap: () {
                       scanner();
+
+                      final snack = SnackBar(
+                        content: Text("Ok!"),
+                        duration: Duration(seconds: 2),
+                      );
+
+                      Scaffold.of(context).showSnackBar(snack);
                     },
                     child: Container(
                       width: boxConstraints.maxWidth,
@@ -80,8 +112,8 @@ class _TelaInicialState extends State<TelaInicial> {
                         gradient: LinearGradient(
                           transform: GradientRotation(1.5708),
                           colors: [
-                            Color.fromRGBO(88, 165, 225, 1),
                             Color.fromRGBO(48, 210, 114, 1),
+                            Color.fromRGBO(88, 165, 225, 1),
                           ],
                         ),
                         shape: BoxShape.circle,
@@ -119,7 +151,7 @@ class _TelaInicialState extends State<TelaInicial> {
                 Align(
                   alignment: Alignment.topRight,
                   child: Padding(
-                    padding: const EdgeInsets.only(right: 25,top: 15),
+                    padding: const EdgeInsets.only(right: 25, top: 15),
                     child: PopupMenuButton(
                       shape: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -134,7 +166,10 @@ class _TelaInicialState extends State<TelaInicial> {
                         list.add(
                           PopupMenuItem(
                             child: GestureDetector(
-                              onTap: (){print("Configura~pes"); },
+                              onTap: () async {
+                                print("Configura~pes");
+                                // await check('5555');
+                              },
                               child: Row(
                                 children: <Widget>[
                                   Padding(
@@ -148,7 +183,9 @@ class _TelaInicialState extends State<TelaInicial> {
                                   Text(
                                     "Configurações",
                                     style: TextStyle(
-                                        color: Colors.white, fontSize: 20),
+                                      color: Colors.white,
+                                      fontSize: 20,
+                                    ),
                                   ),
                                 ],
                               ),

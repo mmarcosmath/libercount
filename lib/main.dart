@@ -11,6 +11,7 @@ class Inicial extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: TelaInicial(),
+      theme: ThemeData.light(),
     );
   }
 }

@@ -9,6 +9,6 @@ A new Flutter project.
 ![Alt text](images/TelaInicial.svg?raw=true "Tela Inicial 1")
 
 ### Tela Inicial com Opções
-![Alt text](images/Opcoes.svg?raw=true"Tela Inicial 2")
+![Opcoes](images/op.svg?raw=true"Tela Inicial 2")
 
 

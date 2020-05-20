@@ -28,20 +28,25 @@ class SimpleDataBase {
   Future _onCreate(Database db, int version) async {
     await db.execute('''
       CREATE TABLE livro(
-      codigo TEXT)''');
+      codigo TEXT PRIMARY KEY)''');
   }
 
-  Future insert(Livro livro) async {
+  Future<int> insert(Livro livro) async {
+    var res;
     Database db = await instance.database;
     try {
-      await db.insert(
+      res = await db.insert(
         'livro',
         livro.toMap(),
         conflictAlgorithm: ConflictAlgorithm.ignore,
       );
     } catch (e) {
-      return;
+      return -1;
     }
+    for (var v = 0; v<20; v++) {
+      print(res);
+    }
+    return res;
   }
 
   Future<List<Livro>> list() async {

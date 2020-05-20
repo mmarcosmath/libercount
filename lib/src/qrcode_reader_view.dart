@@ -11,7 +11,7 @@ import 'package:flutter/scheduler.dart';
 /// Relevant privileges must be obtained before use
 class QrcodeReaderView extends StatefulWidget {
   final Widget headerWidget;
-  final Future Function(String) onScan;
+  final Future<bool> Function(String) onScan;
   final double scanBoxRatio;
   final Color boxLineColor;
   final Widget helpWidget;
@@ -102,16 +102,28 @@ class QrcodeReaderViewState extends State<QrcodeReaderView>
   }
 
   bool isScan = false;
+
   Future _onQrBack(data, _) async {
     if (isScan == true) return;
     isScan = true;
-    // stopScan();
+    var snack = SnackBar(
+      shape: OutlineInputBorder(),
+      content: Text(
+        "Codigo: " + data,
+        style: TextStyle(
+          color: Colors.white,
+        ),
+      ),
+      duration: Duration(seconds: 5),
+    );
     try {
-      await widget.onScan(data);
+      if (await widget.onScan(data)) {
+        Scaffold.of(context).showSnackBar(snack);
+      }
     } catch (e) {
       print(e);
     }
-    
+
     startScan();
   }
 
@@ -124,7 +136,6 @@ class QrcodeReaderViewState extends State<QrcodeReaderView>
   void stopScan() {
     // _clearAnimation();
     // _controller.stopCamera();
-    Vibration.vibrate(duration: 200);
   }
 
   Future<bool> setFlashlight() async {
@@ -173,79 +184,83 @@ class QrcodeReaderViewState extends State<QrcodeReaderView>
           )
         : Material(
             color: Colors.black,
-            child: LayoutBuilder(builder: (context, constraints) {
-              final qrScanSize = constraints.maxWidth * widget.scanBoxRatio;
-              final mediaQuery = MediaQuery.of(context);
-              if (constraints.maxHeight < qrScanSize * 1.5) {
-                print("1.5");
-              }
-              return Stack(
-                children: <Widget>[
-                  SizedBox(
-                    width: constraints.maxWidth,
-                    height: constraints.maxHeight,
-                    child: QrReaderView(
+            child: Scaffold(
+              body: LayoutBuilder(builder: (context, constraints) {
+                final qrScanSize = constraints.maxWidth * widget.scanBoxRatio;
+                final mediaQuery = MediaQuery.of(context);
+                if (constraints.maxHeight < qrScanSize * 1.5) {
+                  print("1.5");
+                }
+                return Stack(
+                  children: <Widget>[
+                    SizedBox(
                       width: constraints.maxWidth,
                       height: constraints.maxHeight,
-                      callback: _onCreateController,
-                    ),
-                  ),
-                  (widget.headerWidget != null)?widget.headerWidget:SizedBox(),
-                  Positioned(
-                    left: (constraints.maxWidth - qrScanSize) / 2,
-                    top: (constraints.maxHeight - qrScanSize) * 0.333333,
-                    child: CustomPaint(
-                      painter: QrScanBoxPainter(
-                        boxLineColor: widget.boxLineColor,
-                        animationValue: _animationController?.value ?? 0,
-                        isForward: _animationController?.status ==
-                            AnimationStatus.forward,
-                      ),
-                      child: SizedBox(
-                        width: qrScanSize,
-                        height: qrScanSize,
+                      child: QrReaderView(
+                        width: constraints.maxWidth,
+                        height: constraints.maxHeight,
+                        callback: _onCreateController,
                       ),
                     ),
-                  ),
-                  Positioned(
-                    top: (constraints.maxHeight - qrScanSize) * 0.333333 +
-                        qrScanSize -
-                        12 -
-                        35,
-                    width: constraints.maxWidth,
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: DefaultTextStyle(
-                        style: TextStyle(color: Colors.white),
-                        child: widget.helpWidget ??
-                            Text(
-                              "Posicione a camera no QRCODE",
-                              textAlign: TextAlign.center,
-                            ),
+                    (widget.headerWidget != null)
+                        ? widget.headerWidget
+                        : SizedBox(),
+                    Positioned(
+                      left: (constraints.maxWidth - qrScanSize) / 2,
+                      top: (constraints.maxHeight - qrScanSize) * 0.333333,
+                      child: CustomPaint(
+                        painter: QrScanBoxPainter(
+                          boxLineColor: widget.boxLineColor,
+                          animationValue: _animationController?.value ?? 0,
+                          isForward: _animationController?.status ==
+                              AnimationStatus.forward,
+                        ),
+                        child: SizedBox(
+                          width: qrScanSize,
+                          height: qrScanSize,
+                        ),
                       ),
                     ),
-                  ),
-                  Positioned(
-                    top: (constraints.maxHeight - qrScanSize) * 0.333333 +
-                        qrScanSize +
-                        24,
-                    width: constraints.maxWidth,
-                    child: Container(),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(30),
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.translucent,
-                        onTap: setFlashlight,
-                        child: openFlashlight ? flashOpen : flashClose,
+                    Positioned(
+                      top: (constraints.maxHeight - qrScanSize) * 0.333333 +
+                          qrScanSize -
+                          12 -
+                          35,
+                      width: constraints.maxWidth,
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: DefaultTextStyle(
+                          style: TextStyle(color: Colors.white),
+                          child: widget.helpWidget ??
+                              Text(
+                                "Posicione a camera no QRCODE",
+                                textAlign: TextAlign.center,
+                              ),
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              );
-            }),
+                    Positioned(
+                      top: (constraints.maxHeight - qrScanSize) * 0.333333 +
+                          qrScanSize +
+                          24,
+                      width: constraints.maxWidth,
+                      child: Container(),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(30),
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.translucent,
+                          onTap: setFlashlight,
+                          child: openFlashlight ? flashOpen : flashClose,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }),
+            ),
           );
   }
 

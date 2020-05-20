@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 
@@ -29,7 +30,21 @@ class _ScanViewState extends State<ScanView> {
     return new Scaffold(
       body: QrcodeReaderView(
         key: _key,
-        onScan: onScan,
+        onScan: (String data) async {
+          if (data == null) {
+            Navigator.of(context).pop();
+          }
+
+          var res = await bd.insert(Livro(codigo: data));
+
+          if (res == null) {
+            return false;
+          }
+          Vibration.vibrate(duration: 200);
+
+          return true;
+          // sleep(Duration(seconds: 2));
+        },
         headerWidget: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0.0,
@@ -38,14 +53,21 @@ class _ScanViewState extends State<ScanView> {
     );
   }
 
-  List<Livro> lista = [];
+  // List<Livro> lista = [];
 
-  Future onScan(String data) async {
-    if (data == null) {
-      Navigator.of(context).pop();
-    }
+  // Future onScan(String data) async {
+  //   if (data == null) {
+  //     Navigator.of(context).pop();
+  //   }
 
-    Vibration.vibrate(duration: 200);
-    await bd.insert(Livro(codigo: data));
-  }
+  //   final snack = SnackBar(
+  //     content: Text("Ok!"),
+  //     duration: Duration(seconds: 2),
+  //   );
+
+  //   Scaffold.of(context).showSnackBar(snack);
+
+  //   Vibration.vibrate(duration: 200);
+  //   await bd.insert(Livro(codigo: data));
+  // }
 }

@@ -49,6 +49,7 @@ class _TelaInicialState extends State<TelaInicial> {
     for (var i = 0; i < 20; i++) {
       print(lista);
     }
+    await bd.deleteTable();
     // await check(results);
   }
 

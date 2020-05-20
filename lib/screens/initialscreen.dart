@@ -2,7 +2,9 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:super_qr_reader/super_qr_reader.dart';
+import 'package:libercount/models/database.dart';
+import 'package:libercount/models/livro.dart';
+import 'package:libercount/super_qr_reader.dart';
 
 class TelaInicial extends StatefulWidget {
   @override
@@ -11,38 +13,43 @@ class TelaInicial extends StatefulWidget {
 
 class _TelaInicialState extends State<TelaInicial> {
   String url = "http://192.168.0.105:3000/livros";
+  final bd = SimpleDataBase.instance;
 
   Future<bool> check(String code) async {
     http.Response res;
-    try {
-      res = await http.get(url + '/codigo/' + code);
-      if (res.statusCode == 200) {
-        var data = jsonDecode(res.body);
-        await http.put(url + '/codigo/' + data['_id']);
-        print(url + '/codigo/' + data['_id']);
-      }
-    } catch (e) {
-      print(e);
-      return false;
+    List<Livro> lista = await bd.list();
+    for (var i = 0; i < 20; i++) {
+      print(lista);
     }
-    // var data = jsonDecode(res.body);
-    print(res.body);
-    // print(data);
+    for (var l in lista) {
+      try {
+        res = await http.get(url + '/codigo/' + l.codigo);
+        if (res.statusCode == 200) {
+          var data = jsonDecode(res.body);
+          await http.put(url + '/codigo/' + data['_id']);
+          print(url + '/codigo/' + data['_id']);
+        }
+      } catch (e) {
+        print(e);
+        continue;
+      }
+    }
+    await bd.deleteTable();
     return true;
   }
 
   Future<void> scanner() async {
-    String results = await Navigator.push(
-      // waiting for the scan results
+    await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ScanView(), // open the scan view
+        builder: (context) => ScanView(),
       ),
     );
-    if (results != null) {
-      await check(results);
-      scanner();
+    List<Livro> lista = await bd.list();
+    for (var i = 0; i < 20; i++) {
+      print(lista);
     }
+    // await check(results);
   }
 
   @override
@@ -66,7 +73,6 @@ class _TelaInicialState extends State<TelaInicial> {
                       ),
                     ],
                     gradient: LinearGradient(
-                      // begin: Alignment.topRight,
                       transform: GradientRotation(1.5708),
                       colors: [
                         Color.fromRGBO(88, 165, 225, 1),
@@ -91,15 +97,8 @@ class _TelaInicialState extends State<TelaInicial> {
                 Align(
                   alignment: Alignment(0, 0.7),
                   child: GestureDetector(
-                    onTap: () {
-                      scanner();
-
-                      final snack = SnackBar(
-                        content: Text("Ok!"),
-                        duration: Duration(seconds: 2),
-                      );
-
-                      Scaffold.of(context).showSnackBar(snack);
+                    onTap: () async {
+                      await scanner();
                     },
                     child: Container(
                       width: boxConstraints.maxWidth,
@@ -161,40 +160,7 @@ class _TelaInicialState extends State<TelaInicial> {
                         ),
                       ),
                       color: Color.fromRGBO(76, 160, 191, 1),
-                      itemBuilder: (context) {
-                        var list = List<PopupMenuEntry<Object>>();
-                        list.add(
-                          PopupMenuItem(
-                            child: GestureDetector(
-                              onTap: () async {
-                                print("Configura~pes");
-                                // await check('5555');
-                              },
-                              child: Row(
-                                children: <Widget>[
-                                  Padding(
-                                    padding: const EdgeInsets.only(right: 10),
-                                    child: Icon(
-                                      Icons.settings,
-                                      color: Colors.white,
-                                      size: 30,
-                                    ),
-                                  ),
-                                  Text(
-                                    "Configurações",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 20,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            value: 1,
-                          ),
-                        );
-                        return list;
-                      },
+                      itemBuilder: _itemBuilder,
                       icon: Icon(
                         Icons.more_horiz,
                         size: 50,
@@ -209,5 +175,40 @@ class _TelaInicialState extends State<TelaInicial> {
         ),
       ),
     );
+  }
+
+  List<PopupMenuEntry<dynamic>> _itemBuilder(context) {
+    var list = List<PopupMenuEntry<Object>>();
+    list.add(
+      PopupMenuItem(
+        child: GestureDetector(
+          onTap: () async {
+            print("Configura~pes");
+            // await check('5555');
+          },
+          child: Row(
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.only(right: 10),
+                child: Icon(
+                  Icons.settings,
+                  color: Colors.white,
+                  size: 30,
+                ),
+              ),
+              Text(
+                "Configurações",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                ),
+              ),
+            ],
+          ),
+        ),
+        value: 1,
+      ),
+    );
+    return list;
   }
 }

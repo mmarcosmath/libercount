@@ -6,9 +6,9 @@ A new Flutter project.
 
 
 ### Tela Inicial
-![Alt text](images/TelaInicial.svg?raw=true "Tela Inicial 1")
+<img src="images/TelaInicial.svg"/>
 
 ### Tela Inicial com Opções
-![Opcoes](images/op.svg?raw=true"Tela Inicial 2")
+<img src="images/op.svg"/>
 
 

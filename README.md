@@ -4,6 +4,8 @@ A new Flutter project.
 
 ## Getting Started
 
+### Tela Ouvir
+<img src="images/Ouvir.svg"/>
 
 ### Tela Inicial
 <img src="images/TelaInicial.svg"/>
